@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang = "en">
+   <head>
+      <script src = "./d3.js"></script>
+      <link rel="stylesheet" type="text/css" href="style.css" />
+    </head>
+
+   <body>
+    <h1>Hello world</h1>
+      <script>
+        // write your d3 code here..
+        // Manual data
+        const data = [2,3.2, 3.1, 1, 5, 6.8, 10];
+        //column data type management
+        const rowConverter = function(d) {
+            return {
+                Food: d.food,
+                Deliciousness: parseFloat(d.Deliciousness)
+            }
+        };
+        //CSV imported data
+        const csv_data = d3.csv('./data.csv', rowConverter, function(data1) {
+            console.log(data1)
+        });
+
+        d3.select('body').selectAll('p')
+            .data(data)
+            .enter()
+            .append('p')
+            .text(function(d) {
+                return 'I am a paragraph and my data is ' + d
+            })
+            .style('color', function (d) {
+                if (d <3.5) {
+                    return 'red'
+                } else {
+                    return 'blue'
+                }
+            });
+
+
+        let dataset = []
+        for (let i = 0; i < 15; i++) {
+            const newNum = Math.floor(Math.random() * 80)
+            dataset.push(newNum)
+        }
+
+        d3.select('body').selectAll('div')
+            .data(dataset)
+            .enter()
+            .append('div')
+            .attr('class','bar')
+            .style('height', function(d) {
+                return (d) + 'px'
+            });
+
+        let w = '200px'
+        let h = '100px'
+
+        let svg = d3.select('body')
+                    .append('svg')
+                    .attr('width', w)
+                    .attr('height', h)
+        
+        let circles = svg.selectAll('circle')
+            .data(dataset)
+            .enter()
+            .append('circle')
+
+        circles.attr('cx', function(d, i) {
+            return i * 10 + 30
+        })
+        .attr('cy', 50)
+        .attr('r', function(d){return d/10})
+        .attr()
+
+      </script>
+   </body>
+</html>

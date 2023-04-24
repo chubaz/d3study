@@ -1,0 +1,11 @@
+div.bar {
+    display: inline-block;
+    height: 100px;
+    width: 45px;
+    background-color: aquamarine;
+    margin-right: 3px;
+}
+
+p {
+    font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+}
