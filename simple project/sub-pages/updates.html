@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang = "en">
+   <head>
+      <script src = "../d3.js"></script>
+      <link rel="stylesheet" type="text/css" href="../style.css" />
+    </head>
+
+   <body>
+    <h1>Hello world</h1>
+    <a href="../index.html">Back</a>
+    <p id="barChartUpdate">Click to randomise data</p>
+      <script>
+        // write your d3 code here..
+        let dataset = [];
+        let dataset1 = [];
+        let color = [0,0,1]
+
+        function randomData(rnd) {
+            dataset1 = []
+            dataset = [];
+            const dataPoints = 18;
+
+            for ( i = 0; i < dataPoints; i++) {
+                dataset.push(Math.floor(Math.random() * rnd * 10))
+                let datum1 = []
+                for ( j = 0; j < 2; j ++) {
+                    datum1[j] = Math.floor(Math.random() * rnd * 10)
+                }
+                dataset1.push(datum1)
+            }
+            colorPick = Math.floor(Math.random() * 3)
+            if (colorPick === 0) {
+                color = [1,0,0]
+            } else if (colorPick === 1) {
+                color = [0,1,0]
+            } else {
+                color = [0,0,1]
+            }
+        }
+
+
+        randomData(3)
+
+         let w = 700
+         let h = 325
+         let padding = 30
+         let barPadding = 2
+
+        // Bar chart scales
+        let xScale = d3.scaleBand()
+                        .domain(d3.range(dataset.length))
+                        .rangeRound([0,w])  // <-- please note the use of rangeRound to round the output to have a clean pixel value.
+                        .paddingInner(0.05)
+        let yScale = d3.scaleLinear()
+                        .domain([0,d3.max(dataset, function(d){return d})])
+                        .rangeRound([h - padding, padding])  // <-- please note the use of rangeRound to round the output to have a clean pixel value.
+        let cScale = d3.scaleLinear()
+                        .domain([0, d3.max(dataset, function(d) {return d})])
+                        .range([256,80])
+
+        // Scatter scales
+        let xScale1 = d3.scaleLinear()                  // <--- Be careful with the type of scaling that is being done
+                        .domain([0, d3.max(dataset1, function(d) {return d[0]})])
+                        .rangeRound([padding,w-padding])  // <-- please note the use of rangeRound to round the output to have a clean pixel value.
+        let yScale1 = d3.scaleLinear()
+                        .domain([0,d3.max(dataset1, function(d) {return d[1]})])
+                        .rangeRound([h - padding, padding])  // <-- please note the use of rangeRound to round the output to have a clean pixel value.
+        let cScale1 = d3.scaleLinear()
+                        .domain([0, d3.max(dataset1, function(d) {return d[1]})])
+                        .rangeRound([256,80])
+        let rScale1 = d3.scaleLinear()
+                        .domain([0, d3.max(dataset1, function(d) {return d[0]})])
+                        .range([7,15])
+
+
+                        
+                        let svg = d3.select('body')
+                        .append('svg')
+                        .attr('height', h)
+                     .attr('width', w)
+
+        let svg1 = d3.select('body')
+                     .append('svg')
+                     .attr('height', h)
+                     .attr('width', w)
+
+        svg1.append('clipPath')
+            .attr('id', 'chart-area')
+            .append('rect')
+            .attr('x', padding)
+            .attr('y', padding)
+            .attr('width', w - padding * 2)
+            .attr('height', h - padding * 2)
+
+        svg.selectAll('rect')
+            .data(dataset)
+            .enter()
+            .append('rect')
+            .attr('x', function(d,i) {
+               return xScale(i)
+            })
+            .attr('y', function(d) {
+               return yScale(d)
+            })
+            .attr('width', xScale.bandwidth())
+            .attr('height', function(d) {
+               return h - yScale(d)
+            })
+            .attr('fill', function(d) {
+                return "rgb(0, 0, " + cScale(d) + ')'
+            })
+            
+        svg.selectAll('text')
+            .data(dataset)
+            .enter()
+            .append('text')
+            .text(function(d) {
+                return d;
+            })
+            .attr('x', function (d, i) {
+                return xScale(i) + xScale.bandwidth()/2
+            })
+            .attr('y', function (d) {
+                return yScale(d) + 15
+            })
+            .attr('fill', 'white')
+            .attr('text-anchor', 'middle')
+
+
+        svg1.append('g')
+            .attr('id', 'circles')
+            .attr('clip-path', 'url(#chart-area)')
+            .selectAll('circle')
+            .data(dataset1)
+            .enter()
+            .append('circle')
+            .attr('cx', function(d) {
+               return xScale1(d[0])
+            })
+            .attr('cy', function(d) {
+               return yScale1(d[1])
+            })
+            .attr('r', function(d) {return rScale1(d[0])})
+            .attr('fill', function(d) {
+               return "rgb(0, 0, " + cScale1(d[1]) + ')'
+            })
+            
+         svg1.selectAll('text')
+            .data(dataset1)
+            .enter()
+            .append('text')
+            .text(function(d) {
+               return d;
+            })
+            .attr('x', function (d) {
+                return xScale1(d[0]) + 15
+            })
+            .attr('y', function (d) {
+               return yScale1(d[1]) - 15
+            })
+            .attr('fill', function(d) {
+               return "rgb(0, 0, " + cScale1(d[1]) + ')'
+            })
+            .attr('text-anchor', 'middle')
+            .attr('font-size', 9)
+        
+
+
+            // Axes
+        let xAxis = d3.axisBottom(xScale1)
+                            .ticks(10)
+        let yAxis = d3.axisLeft(yScale1)
+                            .ticks(10)
+        
+        svg1.append('g')
+            .attr('class', 'x axis')
+            .attr('transform', 'translate(0,' + (h - padding) + ')')
+            .call(xAxis)
+
+        svg1.append('g')
+            .attr('class', 'y axis')
+            .attr('transform', 'translate(' + (padding) + ',0)')
+            .call(yAxis)
+
+        d3.select('body')
+            .selectAll('p')
+            .on('click', function() {
+                randomData(Math.floor(Math.random() * 5) + 1)
+                
+                let xScale = d3.scaleBand()
+                        .domain(d3.range(dataset.length))
+                        .rangeRound([0,w])  // <-- please note the use of rangeRound to round the output to have a clean pixel value.
+                        .paddingInner(0.05)
+                let yScale = d3.scaleLinear()
+                        .domain([0,d3.max(dataset, function(d){return d})])
+                        .rangeRound([h - padding, padding])  // <-- please note the use of rangeRound to round the output to have a clean pixel value.
+                let cScale = d3.scaleLinear()
+                        .domain([0, d3.max(dataset, function(d) {return d})])
+                        .rangeRound([256,80])
+
+                // Scatter scales update
+                let xScale1 = d3.scaleLinear()                  // <--- Be careful with the type of scaling that is being done
+                        .domain([0, d3.max(dataset1, function(d) {return d[0]})])
+                        .range([padding,w-padding])  // <-- please note the use of rangeRound to round the output to have a clean pixel value.
+                let yScale1 = d3.scaleLinear()
+                        .domain([0,d3.max(dataset1, function(d) {return d[1]})])
+                        .range([h - padding, padding])  // <-- please note the use of rangeRound to round the output to have a clean pixel value.
+                let cScale1 = d3.scaleLinear()
+                        .domain([0, d3.max(dataset1, function(d) {return d[1]})])
+                        .rangeRound([256,80])
+                
+                let rScale1 = d3.scaleLinear()
+                        .domain([0, d3.max(dataset1, function(d) {return d[0]})])
+                        .range([7,15])
+
+
+                svg.selectAll('rect')
+                    .data(dataset)
+                    .transition()
+                    .delay(function (d,i) {
+                        return i * 10
+                    })
+                    .duration(750)
+                    .ease(d3.easePolyOut)
+                    .attr('x', function(d,i) {
+                        return xScale(i)
+                    })
+                    .attr('y', function(d) {
+                        return yScale(d)
+                    })
+                    .attr('width', xScale.bandwidth())
+                    .attr('height', function(d) {
+                            return h - yScale(d)
+                    })
+                    .attr('fill', function(d) {
+                        return 'rgb(' + cScale(d) * color[0] + ',' + cScale(d) * color[1] + ',' + cScale(d) * color[2] +')'
+                    })
+
+                svg.selectAll('text')
+                    .data(dataset)
+                    .transition()
+                    .delay(function (d,i) {
+                        return i * 10
+                    })
+                    .duration(750)
+                    .ease(d3.easePolyOut)
+                    .text(function(d) {
+                        return d
+                    })
+                    .attr('x', function (d, i) {
+                        return xScale(i) + xScale.bandwidth()/2
+                    })
+                    .attr('y', function (d) {
+                        return yScale(d) + 15
+                    })
+                    .attr('fill', 'white')
+                    .attr('text-anchor', 'middle')
+
+                svg1.selectAll('circle')
+                    .data(dataset1)
+                    .transition()
+                    .duration(2000)
+                    .ease(d3.easePolyOut)
+                    .on('start', function() {
+                        d3.select(this)
+                            .attr('fill', 'magenta')
+                            .attr('r', 3)
+                    })
+                    .attr('cx', function(d) {
+                        return xScale1(d[0])
+                    })
+                    .attr('cy', function(d) {
+                        return yScale1(d[1])
+                    })
+                    .attr('r', function(d) {return rScale1(d[0])})
+                    .attr('fill', function(d) {
+                        return 'rgb(' + parseInt(cScale(d[1])) * color[0] + ',' + parseInt(cScale(d[1])) * color[1] + ',' + parseInt(cScale(d[1])) * color[2] +')'
+                    })
+
+                svg1.selectAll('text')
+                    .data(dataset1)
+                    .transition()
+                    .duration(2000)
+                    .ease(d3.easePolyOut)
+                    .on('start', function() {
+                        d3.select(this)
+                            .attr('fill', 'magenta')
+                    })
+                    .text(function(d) {
+                        return d;
+                    })
+                    .attr('x', function (d) {
+                        return xScale1(d[0]) + 15
+                    })
+                    .attr('y', function (d) {
+                        return yScale1(d[1]) - 15
+                    })
+                    .attr('fill', function(d) {
+                        return 'rgb(' + cScale(d[1]) * color[0] + ',' + cScale(d[1]) * color[1] + ',' + cScale(d[1]) * color[2] +')'
+                    })
+                    .attr('text-anchor', 'middle')
+                    .attr('font-size', 9)
+
+                let xAxis = d3.axisBottom(xScale1)
+                            .ticks(10)
+                let yAxis = d3.axisLeft(yScale1)
+                            .ticks(10)
+        
+                svg1.select('.x.axis')
+                    .transition()
+                    .duration(750)
+                    .call(xAxis)
+
+                svg1.select('.y.axis')
+                    .transition()
+                    .duration(750)
+                    .call(yAxis)
+                })
+
+
+      </script>
+   </body>
+</html>

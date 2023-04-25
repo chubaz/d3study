@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang = "en">
+   <head>
+      <script src = "../d3.js"></script>
+      <link rel="stylesheet" type="text/css" href="../style.css" />
+    </head>
+
+   <body>
+    <h1>Hello world</h1>
+    <a href="../index.html">Back</a>
+    <div id="first_div"></div>
+      <script>
+        // write your d3 code here..
+   
+         // It is important to define the way in which time should be parsed from string and the various ways in which it can be displayed.
+         const parseTime = d3.timeParse('%m/%d/%y')
+         const formatTime = d3.timeFormat('%b %e')
+
+         //The row converter modified parses the row object which always reads strings. 
+         function rowConverter(d) {
+            return {
+               Date: parseTime(d.Date),
+               Amount: parseInt(d.Amount) + 2
+            }
+         }
+
+         // In order to see the actual importing and parsing of data, we do not need to define a callback function within the csv method
+         // Rather we do so in the 'then' method applied to the Promise object.
+         // NB the data is pushed with the ... three dot notation so by the time the function is called all the data has been loaded in the array.
+         let dateData = d3.csv('../data/  date.csv', rowConverter)
+         let dataTime = []
+         dateData.then(function(d) {
+            dataTime.push(...d)
+            plotDates(dataTime)
+         })
+         
+         // This function is only called once the data has been loaded.
+         function plotDates(dataTime) {
+            
+            const h1 = 400
+            const w1 = 1000
+            const pad = 30
+
+            let svg1 = d3.select('body')
+                     .append('svg')
+                     .attr('height', h1)
+                     .attr('width', w1)
+                     .classed('test', true)
+            
+            // The time is scaled with scaleTime, be careful that the min and max of the domain and range need to be around square brackets
+
+            let dateScaleX = d3.scaleTime()
+                              .domain([
+                              d3.min(dataTime, function(d) {return d.Date}),
+                              d3.max(dataTime, function(d) {return d.Date})
+                           ])
+                              .range([pad, w1 - pad*2])
+            
+            let dateScaleY = d3.scaleLinear()
+                           .domain([
+                              0,
+                              d3.max(dataTime, function(d) {return d.Amount})
+                           ])
+                           .range([h1 - pad, pad*1.5])
+            
+            
+            let xAxis = d3.axisBottom(dateScaleX)
+                            .tickValues([parseTime('01/01/17'), parseTime('01/12/17')])
+            
+            let yAxis = d3.axisLeft(dateScaleY)
+                            .ticks(5)
+            
+            // Alternatively the argument is omitted and this is chained --> .scale(dateScaleX);
+            
+            
+
+            svg1.selectAll('circle')
+                  .data(dataTime)
+                  .enter()
+                  .append('circle')
+                  .attr('cx', function(d) {
+                     return dateScaleX(d.Date)
+                  })
+                  .attr('cy', function(d) {
+                     return dateScaleY(d.Amount)
+                  })
+                  .attr('r',5)
+                  .attr('fill', function(d) {
+                     return "rgb(0, 0, " + Math.round(256 - (d.Amount*10)) + ')'
+                  })
+
+            svg1.selectAll('text')
+                  .data(dataTime)
+                  .enter()
+                  .append('text')
+                  .text(function(d) {
+                     return formatTime(d.Date);
+                  })
+                  .attr('x', function (d, i) {
+                     return dateScaleX(d.Date) + 10
+                  })
+                  .attr('y', function (d) {
+                     return dateScaleY(d.Amount) - 10 
+                  })
+                  .attr('fill', 'red')
+                  .attr('text-anchor', 'middle')
+                  .attr('font-size', 14)
+
+            svg1.append('g')
+                  .attr('class', 'axis')
+                  .attr('transform', 'translate(0,' + (h1-pad) + ')')
+                  .call(xAxis)
+            
+            svg1.append('g')
+                  .attr('class', 'axis')
+                  .attr('transform', 'translate(' + (pad) + ',0 )')
+                  .call(yAxis)
+
+         }
+
+      </script>
+   </body>
+</html>

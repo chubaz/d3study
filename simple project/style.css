@@ -6,6 +6,32 @@ div.bar {
     margin-right: 3px;
 }
 
+rect:hover {
+    fill:orange
+}
+
+div.bar1 {
+    display: inline-block;
+    height: 100px;
+    width: 45px;
+    background-color: teal;
+    margin-right: 3px;
+}
+
+
 p {
     font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+}
+
+g.axis path,
+g.axis line {
+    stroke: teal;
+    shape-rendering:crispEdges
+}
+
+g.axis text {
+    font-family: Optima, Futura, sans-serif;
+    font-weight: bold;
+    font-size: 14px;
+    fill: teal;
 }

@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang = "en">
+   <head>
+      <script src = "../d3.js"></script>
+      <link rel="stylesheet" type="text/css" href="../style.css" />
+    </head>
+
+   <body>
+    <h1>Hello world</h1>
+    <a href="../index.html">Back</a>
+    <p id="add">Click to <strong>add</strong> data</p>
+    <p id="remove">Click to <strong>remove</strong> data</p>
+      <script>
+        // write your d3 code here..
+        let dataset = [];
+        let dataset1 = [];
+        let color = [0,0,1]
+
+        const key = (d) => {
+            return d.key
+        }
+        
+        function randomData(rnd) {
+            dataset1 = []
+            dataset = [];
+            const dataPoints = 18;
+
+            for ( i = 0; i < dataPoints; i++) {
+                let datum = {}
+                datum = {key: i, value: Math.floor(Math.random() * rnd * 10)} 
+                dataset.push(datum)
+                let datum1 = {}
+                for ( j = 0; j < 2; j ++) {
+                    datum1[j] = Math.floor(Math.random() * rnd * 10)
+                }
+                dataset1.push({key: i, value: datum1})
+            }
+            colorPick = Math.floor(Math.random() * 3)
+            if (colorPick === 0) {
+                color = [1,0,0]
+            } else if (colorPick === 1) {
+                color = [0,1,0]
+            } else {
+                color = [0,0,1]
+            }
+        }
+
+        function addDatum(num) {
+            let datum = []
+            let datum1 = []
+            let max_key = 0
+            let max_key1 = 0
+
+
+            if (dataset.length < 1) {
+                max_key = 1
+            } else {
+                max_key = d3.max(dataset, function(d) {return d.key + 1})
+            }
+
+            if (dataset1.length < 1) {
+                max_key1 = 1
+            } else {
+                max_key1 = d3.max(dataset1, function(d) {return d.key + 1})
+            }
+
+            datum = {key: max_key, value: Math.floor(Math.random() * num * 10)}
+            datum1[0] = Math.floor(Math.random() * num * 10)
+            datum1[1] = Math.floor(Math.random() * num * 10)
+            
+
+
+            /*dataset = dataset.map((d,i) => {return {key: i, value: d.value}})
+            dataset1 = dataset.map((d,i) => {return {key: i, value: d.value}})*/
+            dataset.push(datum)
+            dataset1.push({key: max_key1, value: datum1}) 
+
+            colorPick = Math.floor(Math.random() * 3)
+            if (colorPick === 0) {
+                color = [1,0,0]
+            } else if (colorPick === 1) {
+                color = [0,1,0]
+            } else {
+                color = [0,0,1]
+            }
+        }
+
+        // When removing an object from the array of objects it is important to reassign it to the original value, 
+        // even though this may incur in processing or memory problems.
+        // In order to always remove an existing index, an array of the existing keys should be made at the start.
+        function removeDatum(num) {
+            
+            dataset.splice(num, 1)
+            dataset1.splice(num,1)
+
+        }
+
+        randomData(3)
+
+        let w = 700
+        let h = 325
+        let padding = 30
+        let barPadding = 2
+
+        // Bar chart scales
+        let xScale = d3.scaleBand()
+                        .domain(d3.range(dataset.length))
+                        .rangeRound([0,w])  // <-- please note the use of rangeRound to round the output to have a clean pixel value.
+                        .paddingInner(0.05)
+        let yScale = d3.scaleLinear()
+                        .domain([0,d3.max(dataset, function(d){return d.value})])
+                        .rangeRound([h - padding, padding])  // <-- please note the use of rangeRound to round the output to have a clean pixel value.
+        let cScale = d3.scaleLinear()
+                        .domain([0, d3.max(dataset, function(d) {return d.value})])
+                        .range([256,80])
+
+        // Scatter scales
+        let xScale1 = d3.scaleLinear()                  // <--- Be careful with the type of scaling that is being done
+                        .domain([0, d3.max(dataset1, function(d) {return d.value[0]})])
+                        .rangeRound([padding,w-padding])  // <-- please note the use of rangeRound to round the output to have a clean pixel value.
+        let yScale1 = d3.scaleLinear()
+                        .domain([0,d3.max(dataset1, function(d) {return d.value[1]})])
+                        .rangeRound([h - padding, padding])  // <-- please note the use of rangeRound to round the output to have a clean pixel value.
+        let cScale1 = d3.scaleLinear()
+                        .domain([0, d3.max(dataset1, function(d) {return d.value[1]})])
+                        .rangeRound([256,80])
+        let rScale1 = d3.scaleLinear()
+                        .domain([0, d3.max(dataset1, function(d) {return d.value[0]})])
+                        .range([7,15])
+
+
+                        
+        let svg = d3.select('body')
+                        .append('svg')
+                        .attr('height', h)
+                        .attr('width', w)
+
+        let svg1 = d3.select('body')
+                        .append('svg')
+                        .attr('height', h)
+                        .attr('width', w)
+
+        svg1.append('clipPath')
+            .attr('id', 'chart-area')
+            .append('rect')
+            .attr('x', padding)
+            .attr('y', padding)
+            .attr('width', w - padding * 2)
+            .attr('height', h - padding * 2)
+
+        svg.selectAll('rect')
+            .data(dataset, key)
+            .enter()
+            .append('rect')
+            .attr('x', function(d,i) {
+               return xScale(i)
+            })
+            .attr('y', function(d) {
+               return yScale(d.value)
+            })
+            .attr('width', xScale.bandwidth())
+            .attr('height', function(d) {
+               return h - yScale(d.value)
+            })
+            .attr('fill', function(d) {
+                return "rgb(0, 0, " + cScale(d.value) + ')'
+            })
+            
+        svg.selectAll('text')
+            .data(dataset, key)
+            .enter()
+            .append('text')
+            .text(function(d) {
+                return d.value;
+            })
+            .attr('x', function (d, i) {
+                return xScale(i) + xScale.bandwidth()/2
+            })
+            .attr('y', function (d) {
+                return yScale(d.value) + 15
+            })
+            .attr('fill', 'white')
+            .attr('text-anchor', 'middle')
+
+
+        svg1.append('g')
+            .attr('id', 'circles')
+            .attr('clip-path', 'url(#chart-area)')
+            .selectAll('circle')
+            .data(dataset1, key)
+            .enter()
+            .append('circle')
+            .attr('cx', function(d) {
+               return xScale1(d.value[0])
+            })
+            .attr('cy', function(d) {
+               return yScale1(d.value[1])
+            })
+            .attr('r', function(d) {return rScale1(d.value[0])})
+            .attr('fill', function(d) {
+               return "rgb(0, 0, " + cScale1(d.value[1]) + ')'
+            })
+            
+         svg1.append('g')
+            .attr('id', 'textLabels')
+            .selectAll('text')
+            .data(dataset1, key)
+            .enter()
+            .append('text')
+            .text(function(d) {
+               return d.value[1];
+            })
+            .attr('x', function (d) {
+                return xScale1(d.value[0]) + 15
+            })
+            .attr('y', function (d) {
+               return yScale1(d.value[1]) - 15
+            })
+            .attr('fill', function(d) {
+               return "rgb(0, 0, " + cScale1(d.value[1]) + ')'
+            })
+            .attr('text-anchor', 'middle')
+            .attr('font-size', 9)
+        
+
+
+        // Axes
+        let xAxis = d3.axisBottom(xScale1)
+                            .ticks(10)
+        let yAxis = d3.axisLeft(yScale1)
+                            .ticks(10)
+        
+        svg1.append('g')
+            .attr('class', 'x axis')
+            .attr('transform', 'translate(0,' + (h - padding) + ')')
+            .call(xAxis)
+
+        svg1.append('g')
+            .attr('class', 'y axis')
+            .attr('transform', 'translate(' + (padding) + ',0)')
+            .call(yAxis)
+
+        
+
+        d3.select('body')
+            .selectAll('p#add')
+            .on('click', function() {
+                addDatum(3)
+
+                // It is important to select the right Selector, in this case either a specific Html with their #id or .class,
+                // followed by a selectAll which contains the type of element that needs to be added.
+
+                let bars = svg.selectAll('rect')
+                        .data(dataset, key)
+                let barLabels = svg.selectAll('text')
+                        .data(dataset, key)
+                let circles = svg1.select('g#circles').selectAll('circle')
+                        .data(dataset1, key)
+                let circleLabels = svg1.select('g#textLabels').selectAll('text')
+                        .data(dataset1, key)
+
+                let xScale = d3.scaleBand()
+                        .domain(d3.range(dataset.length))
+                        .rangeRound([0,w])  // <-- please note the use of rangeRound to round the output to have a clean pixel value.
+                        .paddingInner(0.05)
+                let yScale = d3.scaleLinear()
+                        .domain([0,d3.max(dataset, function(d){return d.value})])
+                        .rangeRound([h - padding, padding])  // <-- please note the use of rangeRound to round the output to have a clean pixel value.
+                let cScale = d3.scaleLinear()
+                        .domain([0, d3.max(dataset, function(d) {return d.value})])
+                        .rangeRound([256,80])
+
+                // Scatter scales update
+                let xScale1 = d3.scaleLinear()                  // <--- Be careful with the type of scaling that is being done
+                        .domain([0, d3.max(dataset1, function(d) {return d.value[0]})])
+                        .range([padding,w-padding])  // <-- please note the use of rangeRound to round the output to have a clean pixel value.
+                let yScale1 = d3.scaleLinear()
+                        .domain([0,d3.max(dataset1, function(d) {return d.value[1]})])
+                        .range([h - padding, padding])  // <-- please note the use of rangeRound to round the output to have a clean pixel value.
+                let cScale1 = d3.scaleLinear()
+                        .domain([0, d3.max(dataset1, function(d) {return d.value[1]})])
+                        .rangeRound([256,80])
+                let rScale1 = d3.scaleLinear()
+                        .domain([0, d3.max(dataset1, function(d) {return d.value[0]})])
+                        .range([7,15])
+
+
+                bars.enter()
+                    .append('rect')
+                    .attr('x', function(d,i) {
+                        return w
+                    })
+                    .attr('y', function(d) {
+                        return yScale(d.value)
+                    })
+                    .attr('width', xScale.bandwidth())
+                    .attr('height', function(d) {
+                            return h - yScale(d.value)
+                    })
+                    .attr('fill', function(d) {
+                        return 'rgb(' + cScale(d.value) * color[0] + ',' + cScale(d.value) * color[1] + ',' + cScale(d.value) * color[2] +')'
+                    })
+                    .merge(bars)
+                    .transition()
+                    .delay(function (d,i) {
+                        return i * 10
+                    })
+                    .duration(500)
+                    .ease(d3.easePolyOut)
+                    .attr('x', function(d,i) {
+                        return xScale(i)
+                    })
+                    .attr('y', function(d) {
+                        return yScale(d.value)
+                    })
+                    .attr('width', xScale.bandwidth())
+                    .attr('height', function(d) {
+                            return h - yScale(d.value)
+                    })
+                    .attr('fill', function(d) {
+                        return 'rgb(' + cScale(d.value) * color[0] + ',' + cScale(d.value) * color[1] + ',' + cScale(d.value) * color[2] +')'
+                    })
+
+                barLabels.enter()
+                    .append('text')
+                    .text(function(d) {
+                        return d.value
+                    })
+                    .attr('x', function (d, i) {
+                        return w
+                    })
+                    .attr('y', function (d) {
+                        return yScale(d.value) + 15
+                    })
+                    .attr('fill', 'white')
+                    .attr('text-anchor', 'middle')
+                    .merge(barLabels)
+                    .transition()
+                    .delay(function (d,i) {
+                        return i * 10
+                    })
+                    .duration(500)
+                    .ease(d3.easePolyOut)
+                    .attr('x', function (d, i) {
+                        return xScale(i) + xScale.bandwidth()/2
+                    })
+                    .attr('y', function (d) {
+                        return yScale(d.value) + 15
+                    })
+                    .attr('fill', 'white')
+                    .attr('text-anchor', 'middle')
+
+
+                circles.enter()
+                    .append('circle')
+                    .attr('cx', function(d) {
+                        return w
+                    })
+                    .attr('cy', function(d) {
+                        return yScale1(d.value[1])
+                    })
+                    .attr('r', function(d) {return rScale1(d.value[0])})
+                    .attr('fill', function(d) {
+                        return 'rgb(' + parseInt(cScale(d.value[1])) * color[0] + ',' + parseInt(cScale(d.value[1])) * color[1] + ',' + parseInt(cScale(d.value[1])) * color[2] +')'
+                    })
+                    .merge(circles)
+                    .transition()
+                    .duration(500)
+                    .ease(d3.easePolyOut)
+                    .on('start', function() {
+                        d3.select(this)
+                            .attr('r', 3)
+                    })
+                    .attr('cx', function(d) {
+                        return xScale1(d.value[0])
+                    })
+                    .attr('cy', function(d) {
+                        return yScale1(d.value[1])
+                    })
+                    .attr('r', function(d) {return rScale1(d.value[0])})
+                    .attr('fill', function(d) {
+                        return 'rgb(' + parseInt(cScale(d.value[1])) * color[0] + ',' + parseInt(cScale(d.value[1])) * color[1] + ',' + parseInt(cScale(d.value[1])) * color[2] +')'
+                    })
+
+
+                circleLabels.enter()
+                    .append('text')
+                    .text(d => {return d.value[1]})
+                    .attr('x', w)
+                    .attr('y', function (d) {
+                        return yScale1(d.value[1]) - 15
+                    })
+                    .attr('fill', function(d) {
+                        return 'rgb(' + cScale(d.value[1]) * color[0] + ',' + cScale(d.value[1]) * color[1] + ',' + cScale(d.value[1]) * color[2] +')'
+                    })
+                    .attr('text-anchor', 'middle')
+                    .attr('font-size', 9)
+                    .merge(circleLabels)
+                    .transition()
+                    .duration(500)
+                    .ease(d3.easePolyOut)
+                    .on('start', function() {
+                        d3.select(this)
+                            .attr('fill', 'magenta')
+                    })
+                    .attr('x', function (d) {
+                        return xScale1(d.value[0]) + 15
+                    })
+                    .attr('y', function (d) {
+                        return yScale1(d.value[1]) - 15
+                    })
+                    .attr('fill', function(d) {
+                        return 'rgb(' + cScale(d.value[1]) * color[0] + ',' + cScale(d.value[1]) * color[1] + ',' + cScale(d.value[1]) * color[2] +')'
+                    }) 
+
+                let xAxis = d3.axisBottom(xScale1)
+                            .ticks(10)
+                let yAxis = d3.axisLeft(yScale1)
+                            .ticks(10)
+        
+                svg1.select('.x.axis')
+                    .transition()
+                    .duration(500)
+                    .call(xAxis)
+
+                svg1.select('.y.axis')
+                    .transition()
+                    .duration(500)
+                    .call(yAxis)
+                })
+    
+
+        d3.select('body')
+            .selectAll('p#remove')
+            .on('click', function() {
+                removeDatum(Math.floor(Math.random() * dataset.length))
+                let bars = svg.selectAll('rect')
+                        .data(dataset, key)
+                let barLabels = svg.selectAll('text')
+                        .data(dataset, key)
+                let circles = svg1.select('g#circles').selectAll('circle')
+                        .data(dataset1, key)
+                let circleLabels = svg1.select('g#textLabels').selectAll('text')
+                        .data(dataset1, key)
+
+                let xScale = d3.scaleBand()
+                        .domain(d3.range(dataset.length))
+                        .rangeRound([0,w])  // <-- please note the use of rangeRound to round the output to have a clean pixel value.
+                        .paddingInner(0.05)
+                let yScale = d3.scaleLinear()
+                        .domain([0,d3.max(dataset, function(d){return d.value})])
+                        .rangeRound([h - padding, padding])  // <-- please note the use of rangeRound to round the output to have a clean pixel value.
+                let cScale = d3.scaleLinear()
+                        .domain([0, d3.max(dataset, function(d) {return d.value})])
+                        .rangeRound([256,80])
+
+                // Scatter scales update
+                let xScale1 = d3.scaleLinear()                  // <--- Be careful with the type of scaling that is being done
+                        .domain([0, d3.max(dataset1, function(d) {return d.value[0]})])
+                        .range([padding,w-padding])  // <-- please note the use of rangeRound to round the output to have a clean pixel value.
+                let yScale1 = d3.scaleLinear()
+                        .domain([0,d3.max(dataset1, function(d) {return d.value[1]})])
+                        .range([h - padding, padding])  // <-- please note the use of rangeRound to round the output to have a clean pixel value.
+                let cScale1 = d3.scaleLinear()
+                        .domain([0, d3.max(dataset1, function(d) {return d.value[1]})])
+                        .rangeRound([256,80])
+                let rScale1 = d3.scaleLinear()
+                        .domain([0, d3.max(dataset1, function(d) {return d.value[0]})])
+                        .range([7,15])
+
+
+                bars.exit()
+                    .transition()
+                    .duration(500)
+                    .attr('x', w)
+                    .remove()
+                    
+
+                bars.transition().duration(1000)
+                    .attr('width', xScale.bandwidth())
+                    .attr('x', function(d,i) {
+                        return xScale(i)
+                    })
+
+                barLabels.exit()
+                    .transition()
+                    .duration(500)
+                    .attr('x', w)
+                    .remove()
+
+                barLabels.transition().duration(1000)
+                    .attr('x', function(d,i) {
+                    return xScale(i) + xScale.bandwidth() /2
+                })
+
+
+                circles.exit()
+                    .transition()
+                    .duration(500)
+                    .attr('cy', 0)
+                    .remove()
+
+
+                circleLabels.exit()
+                    .transition()
+                    .duration(500)
+                    .attr('y', 0)
+                    .remove()
+
+                let xAxis = d3.axisBottom(xScale1)
+                            .ticks(10)
+                let yAxis = d3.axisLeft(yScale1)
+                            .ticks(10)
+        
+                svg1.select('.x.axis')
+                    .transition()
+                    .duration(500)
+                    .call(xAxis)
+
+                svg1.select('.y.axis')
+                    .transition()
+                    .duration(500)
+                    .call(yAxis)
+                })
+
+      </script>
+   </body>
+</html>

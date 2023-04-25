@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang = "en">
+   <head>
+      <script src = "../d3.js"></script>
+      <link rel="stylesheet" type="text/css" href="../style.css" />
+    </head>
+
+   <body>
+    <h1>Hello world</h1>
+    <a href="../index.html">Back</a>
+    <div id="first_div">
+       <p id="sortAsc">Click to sort ascending</p>
+       <p id="sortDesc">Click to sort descending</p>
+       <p id="sortNorm">Click to reset</p>
+    </div>
+      <script>
+        // write your d3 code here..
+         let dataset = [5, 10, 13, 19, 21, 25, 22, 18, 15, 13, 11, 12, 15, 20, 18, 17, 16, 18, 23, 25];
+         let indexed_ds = dataset.map((d, i) => {
+            return {index: i, val: d}
+         })
+
+         let w = 500
+         let h = 250
+         let barPadding = 2
+
+         let svg = d3.select('body')
+                     .append('svg')
+                     .attr('height', h)
+                     .attr('width', w)
+
+         const sortBars = (asc) => {
+
+               svg.selectAll('rect')
+                  .sort(function(a,b) {
+                     if (asc == 'asc') {
+                        return d3.ascending(a.val,b.val);
+                     } else if (asc == 'desc') {
+                        return d3.descending(a.val,b.val);
+                     } else {
+                        return d3.ascending(a.index, b.index)
+                     }
+                  })
+                  .transition('barSortAsc')
+                  .duration(750)
+                  .attr('x', function(d, i) {
+                     return i * (w/indexed_ds.length);
+                  })
+               svg.selectAll('text')
+                  .sort(function(a,b) {
+                     if (asc == 'asc') {
+                        return d3.ascending(a.val,b.val);
+                     } else if (asc == 'desc') {
+                        return d3.descending(a.val,b.val);
+                     } else {
+                        return d3.ascending(a.index, b.index)
+                     }
+                  })
+                  .transition('textSortAsc')
+                  .duration(750)
+                  .attr('x', function(d, i) {
+                     return i * (w / indexed_ds.length) + (w / indexed_ds.length - barPadding) / 2;
+                  })
+            };
+         
+
+        svg.selectAll('rect')
+            .data(indexed_ds)
+            .enter()
+            .append('rect')
+            .attr('x', function(d,i) {
+               return i * (w/indexed_ds.length)
+            })
+            .attr('y', function(d) {
+               return h - ( d.val *10 ) 
+            })
+            .attr('width', w / indexed_ds.length - barPadding)
+            .attr('height', function(d) {
+               return d.val * 10
+            })
+            .attr('fill', function(d) {
+               return "rgb(0, 0, " + Math.round(256 - (d.val*10)) + ')'
+            })
+            .on('mouseover', function() {  
+               d3.select(this)
+                  .attr('fill', 'orange')
+            })
+            .on('mouseout', function() {
+               let d = d3.select(this).datum()
+               d3.select(this)
+                  .transition('orangina')                       // <-- it is important to deconflict transitions by giving them different names
+                  .duration(120)
+                  .attr('fill', "rgb(0, 0, " + Math.round(256 - (d.val*10)) + ')') 
+            })
+            .append('title')
+            .text(function(d) {
+               return `The value is ${d.val}`
+            })  // the mouseover event is triggered only for those HTML elements that are in front. Those that are being overlapped cannot 
+            // be touched and hence trigger a mouseover. It is possible though to group elements and assign the event listener to the group
+            // meaning that any interaction with any element in the group will trigger the event.
+            // Similarly, to avoid event triggers on some elements within a group, it is possible to set the .style('pointer-events', 'none').
+            // Groupings only account for the exact box models around the elements within the group. Sometimes it is better to create a transparent
+            // rect on top of the group to which the event listener is bound.
+
+            //Sometimes it is better to leave to CSS the hover event listener by just typing rect:hover {fill: 'orange'} in the stylesheet.
+
+         svg.selectAll('text')
+            .data(indexed_ds)
+            .enter()
+            .append('text')
+            .text(function(d) {
+               return d.val;
+            })
+            .attr('x', function (d, i) {
+               return i * (w / indexed_ds.length) + (w / indexed_ds.length - barPadding) / 2
+            })
+            .attr('y', function (d) {
+               return h - (d.val * 10) + 15
+            })
+            .attr('fill', 'white')
+            .attr('text-anchor', 'middle')
+
+         d3.select('p#sortAsc')
+            .on('click', function() {
+               sortBars('asc');
+            })
+         d3.select('p#sortDesc')
+            .on('click', function() {
+               sortBars('desc');
+            })
+         d3.select('p#sortNorm')
+            .on('click', function() {
+               sortBars('norm');
+            })
+
+      </script>
+   </body>
+</html>
