@@ -89,7 +89,7 @@
                
                const xPos = parseFloat(d3.select(this).attr('x')) + (w / indexed_ds.length - barPadding) / 2 
                const yPos = parseFloat(d3.select(this).attr('y')) + 14
-               console.log('mousedover')
+
                svg.append('text')
                   .attr('id', 'tooltip')
                   .attr('x', xPos)

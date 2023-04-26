@@ -27,7 +27,7 @@
          // In order to see the actual importing and parsing of data, we do not need to define a callback function within the csv method
          // Rather we do so in the 'then' method applied to the Promise object.
          // NB the data is pushed with the ... three dot notation so by the time the function is called all the data has been loaded in the array.
-         let dateData = d3.csv('../data/  date.csv', rowConverter)
+         let dateData = d3.csv('../data/date.csv', rowConverter)
          let dataTime = []
          dateData.then(function(d) {
             dataTime.push(...d)

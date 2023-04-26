@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang = "en">
+   <head>
+      <script src = "../d3.js"></script>
+      <script src="../encapsulation.js" type="module"></script>
+      <script type="'module">
+          
+      </script>
+      <link rel="stylesheet" type="text/css" href="../style.css" />
+    </head>
+
+   <body>
+        <h1>Hello world</h1>
+        <a href="../index.html">Back</a>
+        <div class='chart-container'></div>
+        <script type="module">
+            import bar from '../encapsulation.js'
+
+            let container = d3.select('.chart-container');
+            let barChart = bar();
+            let dataset = [{letter:'A', frequency:12},
+            {letter:'B', frequency:10},
+            {letter:'C', frequency:9},
+            {letter:'D', frequency:4},
+            {letter:'E', frequency:10}]
+
+            barChart
+                .width(800)
+                .height(800)
+                .margin({
+                    left: 70,
+                    bottom: 50,
+                    right: 50,
+                    top: 50,
+                })
+                .on('customMouseOver', function(d) {                        
+                    console.log('data', d3.select(this).datum())
+                }) // !! Important to note the 'this' in the callback function of the event listener is the object to which the event listener is
+                    // bound to (or to which the event listener has been dispatched). The way to access it's data is through d3.select(this).datum() -- see barChart
+
+            container.datum(dataset).call(barChart)
+        </script>
+    </body>
+   
+</html>
