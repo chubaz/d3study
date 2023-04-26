@@ -46,7 +46,7 @@
                   .attr('x', function(d, i) {
                      return i * (w/indexed_ds.length);
                   })
-               svg.selectAll('text')
+               /* svg.selectAll('text')
                   .sort(function(a,b) {
                      if (asc == 'asc') {
                         return d3.ascending(a.val,b.val);
@@ -60,7 +60,7 @@
                   .duration(750)
                   .attr('x', function(d, i) {
                      return i * (w / indexed_ds.length) + (w / indexed_ds.length - barPadding) / 2;
-                  })
+                  })*/
             };
          
 
@@ -81,9 +81,27 @@
             .attr('fill', function(d) {
                return "rgb(0, 0, " + Math.round(256 - (d.val*10)) + ')'
             })
-            .on('mouseover', function() {  
+            .on('mouseover', function(d) {  
                d3.select(this)
                   .attr('fill', 'orange')
+
+               data = d3.select(this).datum()
+               
+               const xPos = parseFloat(d3.select(this).attr('x')) + (w / indexed_ds.length - barPadding) / 2 
+               const yPos = parseFloat(d3.select(this).attr('y')) + 14
+               console.log('mousedover')
+               svg.append('text')
+                  .attr('id', 'tooltip')
+                  .attr('x', xPos)
+                  .attr('y', yPos)
+                  .attr('text-anchor', 'middle')
+                  .attr('font-family', 'sans-serif')
+                  .attr('font-size', '11px')
+                  .attr('font-weight', 'bold')
+                  .attr('fill', 'black')
+                  .text(data.val)
+
+               
             })
             .on('mouseout', function() {
                let d = d3.select(this).datum()
@@ -91,8 +109,10 @@
                   .transition('orangina')                       // <-- it is important to deconflict transitions by giving them different names
                   .duration(120)
                   .attr('fill', "rgb(0, 0, " + Math.round(256 - (d.val*10)) + ')') 
+
+               d3.select('#tooltip').remove();
             })
-            .append('title')
+            .append('title')                                     // <-- default browser tooltip
             .text(function(d) {
                return `The value is ${d.val}`
             })  // the mouseover event is triggered only for those HTML elements that are in front. Those that are being overlapped cannot 
@@ -102,9 +122,13 @@
             // Groupings only account for the exact box models around the elements within the group. Sometimes it is better to create a transparent
             // rect on top of the group to which the event listener is bound.
 
+            .on('mouseout', function() {
+               
+            })
+
             //Sometimes it is better to leave to CSS the hover event listener by just typing rect:hover {fill: 'orange'} in the stylesheet.
 
-         svg.selectAll('text')
+         /* svg.selectAll('text')
             .data(indexed_ds)
             .enter()
             .append('text')
@@ -118,7 +142,7 @@
                return h - (d.val * 10) + 15
             })
             .attr('fill', 'white')
-            .attr('text-anchor', 'middle')
+            .attr('text-anchor', 'middle') */
 
          d3.select('p#sortAsc')
             .on('click', function() {
