@@ -13,21 +13,74 @@
        <p id="sortDesc">Click to sort descending</p>
        <p id="sortNorm">Click to reset</p>
     </div>
+      <div id="containerBarSlider">
+         <input type='range' value=0 class='slider'/>
+         <div id="barChart_id"></div>
+      </div>
+      <p id="dangerNum"></p>
       <script>
         // write your d3 code here..
          let dataset = [5, 10, 13, 19, 21, 25, 22, 18, 15, 13, 11, 12, 15, 20, 18, 17, 16, 18, 23, 25];
          let indexed_ds = dataset.map((d, i) => {
             return {index: i, val: d}
          })
+         let threshold;
 
+         
          let w = 500
          let h = 250
          let barPadding = 2
 
-         let svg = d3.select('body')
+         let svg = d3.select('#barChart_id')
                      .append('svg')
                      .attr('height', h)
                      .attr('width', w)
+
+         d3.select('div#containerBarSlider')
+            .style('display', 'flex')
+            .style('flex-direction', 'row')
+
+         d3.select('input')
+            .attr('min', 0)
+            .attr('max', d3.max(dataset, function(d){return d}))
+            .style('appearance', 'slider-vertical')
+            .style('height', `${h}px`)
+            .on('change', function({target}) {
+               threshold = target.value
+
+               d3.selectAll('#tooltipFix').remove();
+
+               d3.selectAll('rect')
+                  .attr('fill', function(d) {
+                     return 'rgb(0,0,' + Math.round(256 - (d.val*10)) + ')'
+                  })
+                  .filter(function (d) {
+                     return d.val <= parseInt(threshold)
+                  })
+                  .attr('fill', 'red')
+
+               svg.selectAll('text')
+                  .data(dataset)
+                  .enter()
+                  .append('text')
+                  .attr('id', 'tooltipFix')
+                  .attr('x', function(d,i) {return i*(w/dataset.length) + (w/dataset.length - barPadding)/2})
+                  .attr('y', h-5)
+                  .attr('text-anchor', 'middle')
+                  .attr('font-family', 'sans-serif')
+                  .attr('font-size', '11px')
+                  .attr('font-weight', 'bold')
+                  .attr('fill', 'black')
+                  .filter(function(d) {return d <= threshold})
+                  .text(function(d) {
+                     return d})
+
+               const sumDanger = dataset.filter((d) => {return d<= threshold}).reduce((a,b)=>a+b)
+               d3.select('#dangerNum')
+                  .text(`With a threshold of ${threshold}, the number of things in danger is ${sumDanger}`)
+
+            })
+      
 
          const sortBars = (asc) => {
 
@@ -90,16 +143,18 @@
                const xPos = parseFloat(d3.select(this).attr('x')) + (w / indexed_ds.length - barPadding) / 2 
                const yPos = parseFloat(d3.select(this).attr('y')) + 14
 
-               svg.append('text')
-                  .attr('id', 'tooltip')
-                  .attr('x', xPos)
-                  .attr('y', yPos)
-                  .attr('text-anchor', 'middle')
-                  .attr('font-family', 'sans-serif')
-                  .attr('font-size', '11px')
-                  .attr('font-weight', 'bold')
-                  .attr('fill', 'black')
-                  .text(data.val)
+               if (data.val > threshold) {
+                  svg.append('text')
+                     .attr('id', 'tooltip')
+                     .attr('x', xPos)
+                     .attr('y', yPos)
+                     .attr('text-anchor', 'middle')
+                     .attr('font-family', 'sans-serif')
+                     .attr('font-size', '11px')
+                     .attr('font-weight', 'bold')
+                     .attr('fill', 'black')
+                     .text(data.val)
+               }
 
                
             })
@@ -108,7 +163,10 @@
                d3.select(this)
                   .transition('orangina')                       // <-- it is important to deconflict transitions by giving them different names
                   .duration(120)
-                  .attr('fill', "rgb(0, 0, " + Math.round(256 - (d.val*10)) + ')') 
+                  .attr('fill', "rgb(0, 0, " + Math.round(256 - (d.val*10)) + ')')
+                  .filter(function(d) {
+                     return d.val <= threshold})
+                  .attr('fill', 'red')
 
                d3.select('#tooltip').remove();
             })

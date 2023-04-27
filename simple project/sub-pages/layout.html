@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang = "en">
+   <head>
+      <script src = "../d3.js"></script>
+      <link rel="stylesheet" type="text/css" href="../style.css" />
+    </head>
+
+   <body>
+    <h1>Hello world</h1>
+    <a href="../index.html">Back</a>
+    <script>
+        // Data Points
+        const dataset = [5, 10, 20, 45, 6, 25]
+        // SVG window attributes (it is possible to work without margin and fit everything in an outerRadius = w/2)
+        const w = 300
+        const h = 300
+        const margin = {
+            left:10,
+            right:10,
+            top:10,
+            bottom:10
+        }
+        // Color palette
+        const color = d3.scaleOrdinal(d3.schemeCategory10);
+        // Dataset pie transform and arc function definition
+        const pie = d3.pie()
+        const outerRadius = (w-margin.left*4) / 2;
+        const innerRadius = (w-margin.left*4)/5;
+        const arc = d3.arc()
+            .innerRadius(innerRadius)
+            .outerRadius(outerRadius)
+        // SVG window definition
+        let svg = d3.select('body')
+                      .append('svg')
+                      .attr('widht', w)
+                      .attr('height', h);
+        // Dataset transform and HTML group creation and centering (they are originally created with center at 0,0)
+        let arcs = svg.selectAll('g.arc')
+                        .data(pie(dataset))
+                      .enter()
+                        .append('g')
+                        .attr('class', 'arc')
+                        .attr('transform', 'translate(' + (w/2) + ", " + (w/2) + ')');
+        // SVG element creation within the arc groups, color assignment. Note how the arc function that constructs the portions of the pie
+        // is passed ot the 'd' attribute of the 'path' element being created.
+        arcs.append('path')
+            .attr('fill', function(d,i) {
+                return color(i);
+            })
+            .attr('d', arc)
+        // Labels assigned the data value and centered at the centroid of the arc. The centroid property is a 2D array with the x, y coordinates
+        // of the centroid w.r.t to the origin of the group to which the text is appended (w/2, w/2).
+        // The text-anchor middle ensure that the indicated x, y point is at the center of the text and not at the very left.
+        arcs.append('text')
+            .attr('transform', function(d) {
+                return 'translate(' + arc.centroid(d) + ')';
+            })
+            .attr('text-anchor', 'middle')
+            .text(function(d) {
+                return d.value
+            })
+            .attr('fill', 'white')
+
+
+    </script>
+   </body>
+</html>

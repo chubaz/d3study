@@ -35,3 +35,10 @@ g.axis text {
     font-size: 14px;
     fill: teal;
 }
+
+.slider {
+    appearance: vertical;
+}
+
+
+#contail

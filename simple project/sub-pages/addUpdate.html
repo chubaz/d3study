@@ -10,20 +10,129 @@
     <a href="../index.html">Back</a>
     <p id="add">Click to <strong>add</strong> data</p>
     <p id="remove">Click to <strong>remove</strong> data</p>
+    <form>
+        <input type='radio' class="radio none" name="radio" checked="'checked">none</input>
+        <input type='radio' class="radio center" name="radio">center</input>
+        <input type='radio' class="radio edges" name="radio">edges</input>
+        <input type='radio' class="radio quadrants" name="radio">quadrants</input>
+    </form>
       <script>
         // write your d3 code here..
         let dataset = [];
         let dataset1 = [];
         let color = [0,0,1]
+        let filterType = 'none';
 
         const key = (d) => {
             return d.key
         }
         
+        d3.selectAll('.radio')
+            .on('click',
+                function({target}) {
+                    switch (d3.select(this).attr('class').replace('radio ', '')) {
+                        case 'none':
+                            filterType = 'none'
+                            break;
+                        case 'center':
+                            filterType = 'center'    
+                            break;
+                        case 'edges':
+                            filterType = 'edges'
+                            break;
+                        case 'quadrants':
+                            filterType = 'quadrants'
+                            break;
+                    }
+
+                    svg1.selectAll('circle')
+                        .attr('fill', function(d) {
+                            if (filterType==='none') {
+                                return "rgb(0, 0, " + cScale1(d.value[1]) + ')'
+                            } else if (filterType==='edges') {
+                                switch (xScale1(d.value[0]) < wAfter / 4 || xScale1(d.value[0]) > 3/4*wAfter || yScale1(d.value[1]) < hAfter / 4 || yScale1(d.value[1]) > 3/4*hAfter) {
+                                    case true:
+                                        return "rgb(0, 0, " + cScale1(d.value[1]) + ')'
+                                        break;
+                                    case false:
+                                        return "rgb(0, " + cScale1(d.value[1]) + ',0)'
+                                        break;
+                                }
+                            } else if (filterType==='center') {
+                                switch (xScale1(d.value[0]) < wAfter / 4 || xScale1(d.value[0]) > (3/4)*wAfter || yScale1(d.value[1]) < hAfter / 4 || yScale1(d.value[1]) > (3/4)*hAfter) {
+                                    case false:
+                                        return "rgb(0, 0, " + cScale1(d.value[1]) + ')'
+                                        break;
+                                    case true:
+                                        return "rgb(0, " + cScale1(d.value[1]) + ',0)'
+                                        break;
+                                }
+                            } else if (filterType==='quadrants') {
+                                switch (String(1*(xScale1(d.value[0]) > wAfter / 2)) + String(1*(yScale1(d.value[1]) >= hAfter / 2))) {
+                                    case '00':
+                                        return "rgb(0, 0, " + cScale1(d.value[1]) + ')'
+                                        break;
+                                    case '01':
+                                        return "rgb(0, " + cScale1(d.value[1]) + ',0)'
+                                        break;
+                                    case '11':
+                                        return "rgb(" + cScale1(d.value[1]) + ',0,0)'
+                                        break;
+                                    case '10':
+                                        return "rgb(" + cScale1(d.value[1]) + ',100,100)'
+                                        break;
+
+                                }
+                            }
+                        })
+
+                    svg1.selectAll('text')
+                        .attr('fill', function(d) {
+                            if (filterType==='none') {
+                                return "rgb(0, 0, " + cScale1(d.value[1]) + ')'
+                            } else if (filterType==='edges') {
+                                switch (xScale1(d.value[0]) < wAfter / 4 || xScale1(d.value[0]) > 3/4*wAfter || yScale1(d.value[1]) < hAfter / 4 || yScale1(d.value[1]) > 3/4*hAfter) {
+                                    case true:
+                                        return "rgb(0, 0, " + cScale1(d.value[1]) + ')'
+                                        break;
+                                    case false:
+                                        return "rgb(0, " + cScale1(d.value[1]) + ',0)'
+                                        break;
+                                }
+                            } else if (filterType==='center') {
+                                switch (xScale1(d.value[0]) < wAfter / 4 || xScale1(d.value[0]) > (3/4)*wAfter || yScale1(d.value[1]) < hAfter / 4 || yScale1(d.value[1]) > (3/4)*hAfter) {
+                                    case false:
+                                        return "rgb(0, 0, " + cScale1(d.value[1]) + ')'
+                                        break;
+                                    case true:
+                                        return "rgb(0, " + cScale1(d.value[1]) + ',0)'
+                                        break;
+                                }
+                            } else if (filterType==='quadrants') {
+                                switch (String(1*(xScale1(d.value[0]) > wAfter / 2)) + String(1*(yScale1(d.value[1]) >= hAfter / 2))) {
+                                    case '00':
+                                        return "rgb(0, 0, " + cScale1(d.value[1]) + ')'
+                                        break;
+                                    case '01':
+                                        return "rgb(0, " + cScale1(d.value[1]) + ',0)'
+                                        break;
+                                    case '11':
+                                        return "rgb(" + cScale1(d.value[1]) + ',0,0)'
+                                        break;
+                                    case '10':
+                                        return "rgb(" + cScale1(d.value[1]) + ',100,100)'
+                                        break;
+
+                                }
+                            }
+                        })
+                }
+            );
+
         function randomData(rnd) {
             dataset1 = []
             dataset = [];
-            const dataPoints = 18;
+            const dataPoints = 30;
 
             for ( i = 0; i < dataPoints; i++) {
                 let datum = {}
@@ -101,6 +210,8 @@
         let h = 325
         let padding = 30
         let barPadding = 2
+        let wAfter = w - padding
+        let hAfter = h - padding
 
         // Bar chart scales
         let xScale = d3.scaleBand()
@@ -181,6 +292,7 @@
             })
             .attr('fill', 'white')
             .attr('text-anchor', 'middle')
+            .attr('font-size', 9)
 
 
         svg1.append('g')
@@ -198,8 +310,44 @@
             })
             .attr('r', function(d) {return rScale1(d.value[0])})
             .attr('fill', function(d) {
-               return "rgb(0, 0, " + cScale1(d.value[1]) + ')'
-            })
+                        if (filterType==='none') {
+                            return "rgb(0, 0, " + cScale1(d.value[1]) + ')'
+                        } else if (filterType==='edges') {
+                            switch (xScale1(d.value[0]) < wAfter / 4 || xScale1(d.value[0]) > 3/4*wAfter || yScale1(d.value[1]) < hAfter / 4 || yScale1(d.value[1]) > 3/4*hAfter) {
+                                case true:
+                                    return "rgb(0, 0, " + cScale1(d.value[1]) + ')'
+                                    break;
+                                case false:
+                                    return "rgb(0, " + cScale1(d.value[1]) + ',0)'
+                                    break;
+                            }
+                        } else if (filterType==='center') {
+                            switch (xScale1(d.value[0]) < wAfter / 4 || xScale1(d.value[0]) > (3/4)*wAfter || yScale1(d.value[1]) < hAfter / 4 || yScale1(d.value[1]) > (3/4)*hAfter) {
+                                case false:
+                                    return "rgb(0, 0, " + cScale1(d.value[1]) + ')'
+                                    break;
+                                case true:
+                                    return "rgb(0, " + cScale1(d.value[1]) + ',0)'
+                                    break;
+                            }
+                        } else if (filterType==='quadrants') {
+                            switch (String(1*(xScale1(d.value[0]) > wAfter / 2)) + String(1*(yScale1(d.value[1]) >= hAfter / 2))) {
+                                case '00':
+                                    return "rgb(0, 0, " + cScale1(d.value[1]) + ')'
+                                    break;
+                                case '01':
+                                    return "rgb(0, " + cScale1(d.value[1]) + ',0)'
+                                    break;
+                                case '11':
+                                    return "rgb(" + cScale1(d.value[1]) + ',0,0)'
+                                    break;
+                                case '10':
+                                    return "rgb(" + cScale1(d.value[1]) + ',100,100)'
+                                    break;
+
+                            }
+                        }
+                    })
             
          svg1.append('g')
             .attr('id', 'textLabels')
@@ -217,8 +365,44 @@
                return yScale1(d.value[1]) - 15
             })
             .attr('fill', function(d) {
-               return "rgb(0, 0, " + cScale1(d.value[1]) + ')'
-            })
+                        if (filterType==='none') {
+                            return "rgb(0, 0, " + cScale1(d.value[1]) + ')'
+                        } else if (filterType==='edges') {
+                            switch (xScale1(d.value[0]) < wAfter / 4 || xScale1(d.value[0]) > 3/4*wAfter || yScale1(d.value[1]) < hAfter / 4 || yScale1(d.value[1]) > 3/4*hAfter) {
+                                case true:
+                                    return "rgb(0, 0, " + cScale1(d.value[1]) + ')'
+                                    break;
+                                case false:
+                                    return "rgb(0, " + cScale1(d.value[1]) + ',0)'
+                                    break;
+                            }
+                        } else if (filterType==='center') {
+                            switch (xScale1(d.value[0]) < wAfter / 4 || xScale1(d.value[0]) > (3/4)*wAfter || yScale1(d.value[1]) < hAfter / 4 || yScale1(d.value[1]) > (3/4)*hAfter) {
+                                case false:
+                                    return "rgb(0, 0, " + cScale1(d.value[1]) + ')'
+                                    break;
+                                case true:
+                                    return "rgb(0, " + cScale1(d.value[1]) + ',0)'
+                                    break;
+                            }
+                        } else if (filterType==='quadrants') {
+                            switch (String(1*(xScale1(d.value[0]) > wAfter / 2)) + String(1*(yScale1(d.value[1]) >= hAfter / 2))) {
+                                case '00':
+                                    return "rgb(0, 0, " + cScale1(d.value[1]) + ')'
+                                    break;
+                                case '01':
+                                    return "rgb(0, " + cScale1(d.value[1]) + ',0)'
+                                    break;
+                                case '11':
+                                    return "rgb(" + cScale1(d.value[1]) + ',0,0)'
+                                    break;
+                                case '10':
+                                    return "rgb(" + cScale1(d.value[1]) + ',100,100)'
+                                    break;
+
+                            }
+                        }
+                    })
             .attr('text-anchor', 'middle')
             .attr('font-size', 9)
         
@@ -334,6 +518,7 @@
                     })
                     .attr('fill', 'white')
                     .attr('text-anchor', 'middle')
+                    .attr('font-size',9)
                     .merge(barLabels)
                     .transition()
                     .delay(function (d,i) {
@@ -379,7 +564,43 @@
                     })
                     .attr('r', function(d) {return rScale1(d.value[0])})
                     .attr('fill', function(d) {
-                        return 'rgb(' + parseInt(cScale(d.value[1])) * color[0] + ',' + parseInt(cScale(d.value[1])) * color[1] + ',' + parseInt(cScale(d.value[1])) * color[2] +')'
+                        if (filterType==='none') {
+                            return "rgb(0, 0, " + cScale1(d.value[1]) + ')'
+                        } else if (filterType==='edges') {
+                            switch (xScale1(d.value[0]) < wAfter / 4 || xScale1(d.value[0]) > 3/4*wAfter || yScale1(d.value[1]) < hAfter / 4 || yScale1(d.value[1]) > 3/4*hAfter) {
+                                case true:
+                                    return "rgb(0, 0, " + cScale1(d.value[1]) + ')'
+                                    break;
+                                case false:
+                                    return "rgb(0, " + cScale1(d.value[1]) + ',0)'
+                                    break;
+                            }
+                        } else if (filterType==='center') {
+                            switch (xScale1(d.value[0]) < wAfter / 4 || xScale1(d.value[0]) > (3/4)*wAfter || yScale1(d.value[1]) < hAfter / 4 || yScale1(d.value[1]) > (3/4)*hAfter) {
+                                case false:
+                                    return "rgb(0, 0, " + cScale1(d.value[1]) + ')'
+                                    break;
+                                case true:
+                                    return "rgb(0, " + cScale1(d.value[1]) + ',0)'
+                                    break;
+                            }
+                        } else if (filterType==='quadrants') {
+                            switch (String(1*(xScale1(d.value[0]) > wAfter / 2)) + String(1*(yScale1(d.value[1]) >= hAfter / 2))) {
+                                case '00':
+                                    return "rgb(0, 0, " + cScale1(d.value[1]) + ')'
+                                    break;
+                                case '01':
+                                    return "rgb(0, " + cScale1(d.value[1]) + ',0)'
+                                    break;
+                                case '11':
+                                    return "rgb(" + cScale1(d.value[1]) + ',0,0)'
+                                    break;
+                                case '10':
+                                    return "rgb(" + cScale1(d.value[1]) + ',100,100)'
+                                    break;
+
+                            }
+                        }
                     })
 
 
@@ -410,8 +631,44 @@
                         return yScale1(d.value[1]) - 15
                     })
                     .attr('fill', function(d) {
-                        return 'rgb(' + cScale(d.value[1]) * color[0] + ',' + cScale(d.value[1]) * color[1] + ',' + cScale(d.value[1]) * color[2] +')'
-                    }) 
+                        if (filterType==='none') {
+                            return "rgb(0, 0, " + cScale1(d.value[1]) + ')'
+                        } else if (filterType==='edges') {
+                            switch (xScale1(d.value[0]) < wAfter / 4 || xScale1(d.value[0]) > 3/4*wAfter || yScale1(d.value[1]) < hAfter / 4 || yScale1(d.value[1]) > 3/4*hAfter) {
+                                case true:
+                                    return "rgb(0, 0, " + cScale1(d.value[1]) + ')'
+                                    break;
+                                case false:
+                                    return "rgb(0, " + cScale1(d.value[1]) + ',0)'
+                                    break;
+                            }
+                        } else if (filterType==='center') {
+                            switch (xScale1(d.value[0]) < wAfter / 4 || xScale1(d.value[0]) > (3/4)*wAfter || yScale1(d.value[1]) < hAfter / 4 || yScale1(d.value[1]) > (3/4)*hAfter) {
+                                case false:
+                                    return "rgb(0, 0, " + cScale1(d.value[1]) + ')'
+                                    break;
+                                case true:
+                                    return "rgb(0, " + cScale1(d.value[1]) + ',0)'
+                                    break;
+                            }
+                        } else if (filterType==='quadrants') {
+                            switch (String(1*(xScale1(d.value[0]) > wAfter / 2)) + String(1*(yScale1(d.value[1]) >= hAfter / 2))) {
+                                case '00':
+                                    return "rgb(0, 0, " + cScale1(d.value[1]) + ')'
+                                    break;
+                                case '01':
+                                    return "rgb(0, " + cScale1(d.value[1]) + ',0)'
+                                    break;
+                                case '11':
+                                    return "rgb(" + cScale1(d.value[1]) + ',0,0)'
+                                    break;
+                                case '10':
+                                    return "rgb(" + cScale1(d.value[1]) + ',100,100)'
+                                    break;
+
+                            }
+                        }
+                    })
 
                 let xAxis = d3.axisBottom(xScale1)
                             .ticks(10)

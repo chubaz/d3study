@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang = "en">
+    <head>
+      <script src = "../d3.js"></script>
+      <link rel="stylesheet" type="text/css" href="../style.css" />
+    </head>
+
+    <body>
+        <h1>Hello world</h1>
+        <a href="../index.html">Back</a>
+        <div id="pathDiv"></div>
+        <script>
+            let w = 800
+            let h = 400
+            let padding = {
+                left: 50,
+                right: 50,
+                top: 30,
+                bottom: 30
+            }
+            function rowConverter(d) {
+                return {
+                    date: new Date(+d.year, (+d.month - 1)),
+                    average: parseFloat(d.average)
+                };
+            };
+
+            d3.csv('../data/weather.csv', rowConverter).then(function(data) {
+                let dataset = data;
+                let ppmSafe = dataset.map((d) => {return {date: d.date, ppm:335.2}})
+                let xScale = d3.scaleTime()
+                    .domain([
+                        d3.min(dataset, function(d) {return d.date;}),
+                        d3.max(dataset, function(d) {return d.date})
+                    ])
+                    .range([padding.right,w - padding.left])
+                let yScale = d3.scaleLinear()
+                    .domain([0,d3.max(dataset, function(d) {return d.average})])
+                    .range([h - padding.bottom, padding.top])
+                let line = d3.line()
+                    .defined(function(d) {return (d.average >= 0)})           // conditionals to exclude empty and danger values
+                    .x(function(d) {return xScale(d.date)})
+                    .y(function(d) {return yScale(d.average)})
+                let linePPM = d3.line()                                     // control line          
+                    .x(function(d) {return xScale(d.date)})
+                    .y(function(d) {return yScale(d.ppm)})
+                let xAxis = d3.axisBottom(xScale)
+                    .ticks(11)
+                let yAxis = d3.axisLeft(yScale)
+                    .ticks(7)
+
+                let svg= d3.select('body div#pathDiv')
+                    .append('svg')
+                    .attr('width', w)
+                    .attr('height', h)
+                svg.append('clipPath')
+                    .attr('id', 'chart-area')
+                    .append('rect')
+                    .attr('x', padding.left)
+                    .attr('y', yScale(335.2))
+                    .attr('width', w - padding.left*2)
+                    .attr('height', h - yScale(335.2) - padding.bottom *2)
+                svg.append('clipPath')
+                    .attr('id', 'chart-area1')
+                    .append('rect')
+                    .attr('x', padding.left)
+                    .attr('y', padding.top)
+                    .attr('width', w - padding.left - padding.right)
+                    .attr('height', yScale(335.2) - padding.top)
+                svg.append('path')
+                    .datum(dataset)
+                    .attr('clip-path', 'url(#chart-area)')
+                    .attr('class', 'line')
+                    .attr('d', line)
+                    .attr('stroke', 'teal')
+                    .attr('fill', 'white')
+                svg.append('path')
+                    .datum(dataset)
+                    .attr('clip-path', 'url(#chart-area1)')
+                    .attr('class', 'danger')
+                    .attr('d', line)
+                    .attr('stroke', 'red')
+                    .attr('fill', 'white')
+                svg.append('path')
+                    .datum(ppmSafe)
+                    .attr('class', 'control')
+                    .attr('d', linePPM)
+                    .attr('stroke', 'red')
+                    .attr('fill', 'white')
+
+                
+                svg.append('g')
+                    .attr('class', 'x-axis axis')
+                    .attr('transform', 'translate(0,' + (h - padding.bottom) +')')
+                    .call(xAxis)
+                svg.append('g')
+                    .attr('class', 'y-axis axis')
+                    .attr('transform', 'translate(' + padding.left +',0)')
+                    .call(yAxis)
+            
+                let area = d3.area()
+                    .defined(function(d) {return (d.average >= 0)})           // conditionals to exclude empty and danger values
+                    .x(function(d) {return xScale(d.date)})
+                    .y1(function(d) {return yScale(d.average)})
+                    .y0(function(d) {return yScale.range()[0]})
+
+
+                let svg1= d3.select('body')
+                    .append('svg')
+                    .attr('width', w)
+                    .attr('height', h)
+                svg1.append('clipPath')
+                    .attr('id', 'chart-area')
+                    .append('rect')
+                    .attr('x', padding.left)
+                    .attr('y', yScale(335.2))
+                    .attr('width', w - padding.left * 2)
+                    .attr('height', h - yScale(335.2) - padding.bottom*2)
+                svg1.append('clipPath')
+                    .attr('id', 'chart-area1')
+                    .append('rect')
+                    .attr('x', padding.left)
+                    .attr('y', padding.top)
+                    .attr('width', w - padding.left - padding.right)
+                    .attr('height', yScale(335.2) - padding.top)
+                svg1.append('path')
+                    .datum(dataset)
+                    .attr('clip-path', 'url(#chart-area)')
+                    .attr('class', 'line')
+                    .attr('d', area)
+                    .attr('stroke', 'teal')
+                    .attr('fill', 'teal')
+                svg1.append('path')
+                    .datum(dataset)
+                    .attr('clip-path', 'url(#chart-area1)')
+                    .attr('class', 'danger')
+                    .attr('d', area)
+                    .attr('stroke', 'red')
+                    .attr('fill', 'red')
+                svg1.append('path')
+                    .datum(ppmSafe)
+                    .attr('class', 'control')
+                    .attr('d', linePPM)
+                    .attr('stroke', 'red')
+                    .attr('fill', 'white')
+
+                
+                svg1.append('g')
+                    .attr('class', 'x-axis axis')
+                    .attr('transform', 'translate(0,' + (h - padding.bottom) +')')
+                    .call(xAxis)
+                svg1.append('g')
+                    .attr('class', 'y-axis axis')
+                    .attr('transform', 'translate(' + padding.left +',0)')
+                    .call(yAxis)
+            });
+
+            
+        </script>
+    </body>
+</html>
