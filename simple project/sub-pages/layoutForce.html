@@ -73,6 +73,9 @@
             .on('drag', dragging)
             .on('end', dragEnded));
         
+
+          let  dragLog = []
+
           function dragStarted (d) {
             if (!d.active) force.alphaTarget(0.3).restart();
               d.subject.fx = d.x;
@@ -81,13 +84,17 @@
           function dragging (d) {
               d.subject.fx = d.x;
               d.subject.fy = d.y;
+              dragLog.push([d.subject.fx, d.subject.fy])
           }
           function dragEnded(d) {
             if (!d.active) force.alphaTarget(0).restart();
               d.subject.fx = null;
               d.subject.fy = null;
+              console.log(dragLog)
+              dragLog = []
           }
 
+          let forceLog = []
           force.on('tick', function() {
               edges.attr('x1', function(d) {return d.source.x})
                 .attr('y1', function(d) {return d.source.y})
@@ -95,6 +102,7 @@
                 .attr('y2', function(d) {return d.target.y})
               nodes.attr('cx', function(d) {return d.x})
                 .attr('cy', function(d) {return d.y})
+              forceLog.push([nodes.filter(function(d) {return d.title === 'George'}).x, nodes.filter(function(d) {return d.title === 'George'}).y])
           })
 
       </script>
